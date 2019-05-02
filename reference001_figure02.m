@@ -9,6 +9,8 @@ minimum_sensitivity_BPSK_MCS10 =  ones(1,length(distance))*-98; % standard page 
 
 path_loss = path_loss_rooftop_macro_deployment(distance);
 
+% path loss dengan fading
+
 %signal power level yang diterima (Power Rx)
 signal_power_rx = transmission_power_10mW - path_loss;
 

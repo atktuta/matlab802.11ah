@@ -1,7 +1,9 @@
 # matlab802.11ah
 Tujuannya adalah membuat analisis dan simulasi PER vs Distance di 802.11ah.
 
-Landasan pertama adalah dari artikel Bojan Domazetović dkk.[1]. Reproduce untuk figure 3, BER vs Distance.
+Landasan pertama adalah dari artikel Bojan Domazetović dkk.[1]. Reproduce untuk figure 1, 2 dan 3.
+
+Paper berikutnya adalah dari artikel Ferrand dkk. [2]. Reproduce untuk figure 6.
 
 
 

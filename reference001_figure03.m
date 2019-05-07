@@ -40,5 +40,5 @@ semilogy(distance, BER_MCS10,'g-*');
 title('BER Vs Distance');
 xlabel('Distance (m)');
 ylabel('BER');
-legend('BER (MCS0 AWGN)','BER (MCS0 AWGN)');
+legend('BER (MCS0 AWGN)','BER (MCS10 AWGN)');
 

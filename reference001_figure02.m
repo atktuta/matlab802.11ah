@@ -15,6 +15,8 @@ signal_power_rx = transmission_power_10mW - path_loss;
 % path loss dengan fading
 signal_power_rx_fading = signal_power_rx - 10*log10(sqrt(2));
 % hasilnya sesuai dengan di artikel. namun penjelasannya saya tidak tahu.
+% kenapa fading bisa dinyatakan dengan 10*log10(sqrt(2))?
+% apakah hubungannya dengan PDP?
 
 figure
 plot(distance,signal_power_rx,"r--")

@@ -172,8 +172,8 @@ title('BER Vs EbNodB for OFDM with BPSK modulation over AWGN-Rayleigh');
 xlabel('Eb/N0 (dB)');ylabel('BER');legend('simulated','theoretical AWGN', ...
     'theoretical Rayleigh');
 
-packet_error_rate_the_awgn = 1 - (1-bit_error_rate_the).^N;
-packet_error_rate_the_rayleigh = 1 - (1-bit_error_rate_the_rayleigh).^N;
+packet_error_rate_the_awgn = 1 - (1-bit_error_rate_the).^N_bits;
+packet_error_rate_the_rayleigh = 1 - (1-bit_error_rate_the_rayleigh).^N_bits;
 figure
 semilogy(eb_no_db, packet_error_rate_sim,'r-o');
 grid on;

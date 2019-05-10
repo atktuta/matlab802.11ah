@@ -18,8 +18,8 @@ eb_no_db = 0:2:20;
 
 % ukuran paket
 % logikanya ukuran paket makin kecil, PER makin kecil
-N = 24; % bytes. usahakan kelipatan 6
-N_bits = N * 8; % ukuran paket dalam bit
+ukuran_paket = 24; % bytes. usahakan kelipatan 6
+N_bits = ukuran_paket * 8; % ukuran paket dalam bit
 
 % untuk BPSK, satu simbol OFDM membawa 48 bit (sama dengan jumlah sc)
 % sehingga butuh berapa simbol untuk membawa N_bits?
@@ -168,45 +168,53 @@ grid on;
 hold on;
 semilogy(eb_no_db, bit_error_rate_the,'g-*');
 semilogy(eb_no_db, bit_error_rate_the_rayleigh,'b-x');
-title('BER Vs EbNodB for OFDM with BPSK modulation over AWGN-Rayleigh');
+title('BER Vs EbNodB for OFDM with BPSK\n  modulation over AWGN-Rayleigh');
 xlabel('Eb/N0 (dB)');ylabel('BER');legend('simulated','theoretical AWGN', ...
     'theoretical Rayleigh');
 
 % ini adalah PER theoretical untuk ergodic/fast fading
-packet_error_rate_the_awgn = 1 - (1-bit_error_rate_the).^N;
-packet_error_rate_the_rayleigh = 1 - (1-bit_error_rate_the_rayleigh).^N;
+% definisi dari Ferrand, 2013:
+% PER where packets are formed with N transmitted symbols. 
+N_ergodic = 10;
+packet_error_rate_the_awgn = 1 - (1-bit_error_rate_the).^N_ergodic;
+packet_error_rate_the_rayleigh = 1 - (1-bit_error_rate_the_rayleigh).^N_ergodic;
+
+figure
+semilogy(eb_no_db, packet_error_rate_sim,'r-o');
+grid on;
+hold on;
+semilogy(eb_no_db, packet_error_rate_the_awgn,'g-*');
+semilogy(eb_no_db, packet_error_rate_the_rayleigh,'b-*');
+title('PER Vs EbNodB for OFDM with BPSK modulation over AWGN-Ergodic Rayleigh');
+xlabel('Eb/N0 (dB)');ylabel('PER');legend('simulated', 'theoretical AWGN',...
+    'theoretical Rayleigh');
+axis([0 eb_no_db(i) 1*1e-5 1]);
+
 
 % kalau untuk block/slow fading, pakai pendekatan Ferrand, 2013
 % cari SNR threshold dulu.
-% SNR = EbN0 untuk BPSK?
-SER_SNR_threshold = 1 - 10^(-0.3/N); % -0.3 berasal dari log10(1/2)
+N_block = N_ergodic;
+SER_SNR_threshold = 1 - 10^(-0.3/N_block); % -0.3 berasal dari log10(1/2)
 akar_SNR_threshold = qfuncinv(SER_SNR_threshold);
 SNR_threshold = akar_SNR_threshold^2;
-SNRLin = 10.^(eb_no_db./10);
-packet_error_rate_the_slow_fading = 1-exp(-SNR_threshold./SNRLin);
+
+% MCS0, BPSK, Bandwidth = 2MHz, bitrate = 0,65 Mbps
+bandwidth = 2e6;
+bitrate = 0.65e6; % untuk coded 1/2
+bitrate = 2*bitrate; % untuk uncoded
+SNR = eb_no_db + 10*log10(bitrate/bandwidth); % berkurang sekitar 4,8 dB
+SNRLin = 10.^(SNR./10);
+packet_error_rate_the_rayleigh_slow_fading = 1-exp(-SNR_threshold./SNRLin);
+
+packet_error_rate_sim_rayleigh = 1 - (1-bit_error_rate_sim).^N_ergodic;
 
 figure
-semilogy(eb_no_db, packet_error_rate_sim,'r-o');
+semilogy(SNR, packet_error_rate_sim,'r-o');
 grid on;
 hold on;
-semilogy(eb_no_db, packet_error_rate_the_awgn,'g-*');
-semilogy(eb_no_db, packet_error_rate_the_rayleigh,'b-*');
-title('PER Vs EbNodB for OFDM with BPSK modulation over AWGN-Rayleigh');
-xlabel('Eb/N0 (dB)');ylabel('PER');legend('simulated', 'theoretical AWGN',...
-    'theoretical Rayleigh');
-axis([0 eb_no_db(i) 1*1e-5 1]);
-
-% ini adalah PER theoretical untuk ergodic/fast fading
-packet_error_rate_the_awgn = 1 - (1-bit_error_rate_sim).^N;
-packet_error_rate_the_rayleigh = 1 - (1-bit_error_rate_the_rayleigh).^N;
-
-figure
-semilogy(eb_no_db, packet_error_rate_sim,'r-o');
-grid on;
-hold on;
-semilogy(eb_no_db, packet_error_rate_the_awgn,'g-*');
-semilogy(eb_no_db, packet_error_rate_the_rayleigh,'b-*');
-title('PER Vs EbNodB for OFDM with BPSK modulation over AWGN-Rayleigh');
-xlabel('Eb/N0 (dB)');ylabel('PER');legend('simulated', 'theoretical AWGN',...
-    'theoretical Rayleigh');
-axis([0 eb_no_db(i) 1*1e-5 1]);
+semilogy(SNR, packet_error_rate_the_rayleigh_slow_fading,'b-*');
+semilogy(SNR, packet_error_rate_sim_rayleigh,'g-x');
+title({'PER Vs EbNodB for OFDM with','BPSK modulation over Block Rayleigh'});
+xlabel('Eb/N0 (dB)');ylabel('PER');legend('simulated', ...
+    'theoretical Rayleigh', 'simulated from BER');
+axis([0 SNR(i) 1*1e-5 1]);

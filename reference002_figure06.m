@@ -7,10 +7,14 @@ clc;
 
 % N adalah number of symbol per packet.
 N = 312/8;  % 312 bits diubah ke bytes
+% mungkin yang dimaksud dengan 312 bits adalah 312 simbol.
+% karena untuk BPSK, 1 simbol = 1 bit.
 
 SER_SNR_threshold = 1 - 10^(-0.3/N);
 
 % SER = Q(sqrt(k*SNR)), BPSK k = 1
+% BPSK berarti SER = BER
+% SER threshold = Q (sqrt(sqrt(k*SNR))  ferrand, 2013, equ. 9
 akar_SNR_threshold = qfuncinv(SER_SNR_threshold);
 SNR_threshold = akar_SNR_threshold^2;
 
@@ -32,4 +36,3 @@ xlabel('Average SNR (dB)')
 ylabel('PER')
 legend('Rayleigh',...
     'Rice (K=4)'); 
-

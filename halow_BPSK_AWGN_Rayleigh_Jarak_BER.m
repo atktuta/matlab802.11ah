@@ -27,7 +27,8 @@ gain_antenna = 0; % dB
 
 transmitted_power_10mW =  -20; % dBW
 received_power = transmitted_power_10mW - path_loss;
-SNR = received_power - (noise_temperature_dBW + noise_figure - gain_antenna);
+%SNR = received_power - (noise_temperature_dBW + noise_figure - gain_antenna);
+SNR = received_power - (-145.22 + noise_figure - gain_antenna);
 
 % MCS0, BPSK, Bandwidth = 2MHz, bitrate = 0,65 Mbps
 bandwidth = 2e6;
@@ -38,14 +39,20 @@ eb_no_lin = 10.^(eb_no_db/10);
 
 % BER AWGN theoretical
 bit_error_rate_the_awgn = (1/2)*erfc(sqrt(eb_no_lin));
+bit_error_rate_the_rayleigh = 0.5.*(1-sqrt(eb_no_lin./(eb_no_lin+1)));
+N_ergodic  = 10;
+packet_error_rate_the_rayleigh = 1 - (1-bit_error_rate_the_rayleigh).^N_ergodic;
 
 figure
-semilogy(eb_no_db, bit_error_rate_the_awgn,'r-o');
+semilogy(jarak, bit_error_rate_the_awgn,'r-o');
 grid on;
 hold on;
+semilogy(jarak, bit_error_rate_the_rayleigh,'g-o');
+semilogy(jarak, packet_error_rate_the_rayleigh,'b-o');
 title({'BER vs EbN0, AWGN'});
-xlabel('Eb/N0 (dB)');ylabel('BER');legend('theoretical BER AWGN');
-axis([0 SNR(i) 1*1e-5 1]);
+xlabel('Eb/N0 (dB)');ylabel('BER');legend('theoretical BER AWGN',...
+    'theoretical BER Rayleigh', 'theoretical PER Rayleigh');
+axis([0 jarak(length(jarak)) 1*1e-2 1]);
 
 % 
 % % ukuran paket

@@ -4,6 +4,7 @@
 % OFDM mengikuti standar 802.11
 
 clear all
+clc
 
 % berikut standar 802.11
 nFFT = 64; % fft size
@@ -45,47 +46,77 @@ for ii = 1:length(EbN0dB)
    xt = reshape(xt.',1,nSym*80);
 
    % Gaussian noise of unit variance, 0 mean
-   nt = 1/sqrt(2)*[randn(1,nSym*80) + 1i*randn(1,nSym*80)];
-
+   % sehingga harus dibagi sqrt(2)
+   nt = 1/sqrt(2)*(randn(1,nSym*80) + 1i*randn(1,nSym*80));
+   % Rayleigh channel, 1 tap.
+   % sehingga tinggal dikali nantinya.
+   % kalau multitap harus konvolusi
+   h = 1/sqrt(2)*(randn(1,nSym*80) + 1i*randn(1,nSym*80));      
+   % multipath channel
+   nTap = 1;
+   ht = 1/sqrt(2)*1/sqrt(nTap)*(randn(nSym,nTap) + 1i*randn(nSym,nTap));
+   
+   % computing and storing the frequency response of the channel, for use at recevier
+   hF = fftshift(fft(h,64,2));
+   
    % Adding noise, the term sqrt(80/64) is to account for the wasted energy due to cyclic prefix
    yt = sqrt(80/64)*xt + 10^(-EsN0dB(ii)/20)*nt;
-
+   yt2 = sqrt(80/64)*h.*xt + 10^(-EsN0dB(ii)/20)*nt;
+   
    % Receiver
    % serial to parallel
    yt = reshape(yt.',80,nSym).'; % formatting the received vector into symbols
+   yt2 = reshape(yt2.',80,nSym).'; % formatting the received vector into symbols
    yt = yt(:,[17:80]); % removing cyclic prefix
+   yt2 = yt2(:,[17:80]); % removing cyclic prefix
 
    % converting to frequency domain
    yF = (sqrt(nDSC)/nFFT)*fftshift(fft(yt.')).';
+   yF2 = (sqrt(nDSC)/nFFT)*fftshift(fft(yt2.')).';
+   % khusus untuk Rayleigh, di equalization dulu
+   % asumsi equalizer nya sudah diketahui
+   yF2 = yF2./hF;   
    % buang yang diluar [-26 to -1, +1 to +26] 
    yMod = yF(:,[6+[1:nBitPerSym/2] 7+[nBitPerSym/2+1:nBitPerSym] ]); 
+   yMod2 = yF2(:,[6+[1:nBitPerSym/2] 7+[nBitPerSym/2+1:nBitPerSym] ]); 
 
    % BPSK demodulation
    % +ve value --> 1, -ve value --> -1
    ipModHat = 2*floor(real(yMod/2)) + 1;
+   ipModHat2 = 2*floor(real(yMod2/2)) + 1;
    ipModHat(find(ipModHat>1)) = +1;
+   ipModHat2(find(ipModHat2>1)) = +1;
    ipModHat(find(ipModHat<-1)) = -1;
+   ipModHat2(find(ipModHat2<-1)) = -1;
 
    % converting modulated values into bits
    ipBitHat = (ipModHat+1)/2;
+   ipBitHat2 = (ipModHat2+1)/2;
    % parallel to serial
-   ipBitHat2 = reshape(ipBitHat.',nBitPerSym*nSym,1).';
+   ipBitHat = reshape(ipBitHat.',nBitPerSym*nSym,1).';
+   ipBitHat2 = reshape(ipBitHat2.',nBitPerSym*nSym,1).';
 
    % counting the errors
-   nErr(ii) = size(find(ipBitHat2 - ipBit),2);
+   nErr(ii) = size(find(ipBitHat - ipBit),2);
+   nErr2(ii) = size(find(ipBitHat2 - ipBit),2);
 
 end
 
 simBer = nErr/(nSym*nBitPerSym);
+simBer2 = nErr2/(nSym*nBitPerSym);
 theoryBer = (1/2)*erfc(sqrt(10.^(EbN0dB/10)));
+theoryBerRayleigh = 0.5.*(1-sqrt(10.^(EbN0dB/10)./(10.^(EbN0dB/10)+1)));
 
 figure
-semilogy(EbN0dB,theoryBer,'bs-','LineWidth',2);
+semilogy(EbN0dB,theoryBer,'bs-','LineWidth',1);
 hold on
-semilogy(EbN0dB,simBer,'mx-','LineWidth',2);
+semilogy(EbN0dB,simBer,'mx-','LineWidth',1);
+semilogy(EbN0dB,theoryBerRayleigh,'gs-','LineWidth',1);
+semilogy(EbN0dB,simBer2,'rx-','LineWidth',1);
 axis([0 10 10^-5 1])
 grid on
-legend('theory AWGN', 'simulation AWGN');
+legend('theory AWGN', 'simulation AWGN', 'theory Rayleigh',...
+    'simulation Rayleigh');
 xlabel('Eb/No, dB')
 ylabel('Bit Error Rate')
 title('BER for BPSK using OFDM')

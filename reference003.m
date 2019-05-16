@@ -40,28 +40,32 @@ for ii = 1:length(EbN0dB)
    % sehingga ukurannya jadi 64+16 = 80. 
    % CP sebesar 16. seperempat dari 64 (standar 802.11)   
    xt = [xt(:,[49:64]) xt];
-
+   
+   % Rayleigh channel
+   % kalau 1 tap tinggal dikali nantinya.
+   % kalau multitap harus konvolusi
+   % multipath channel
+   nTap = 10;
+   ht = 1/sqrt(2)*1/sqrt(nTap)*(randn(nSym,nTap) + 1i*randn(nSym,nTap));
+   % computing and storing the frequency response of the channel, for use at recevier
+   hF = fftshift(fft(ht,64,2));
+   % convolution of each symbol with the random channel
+   parfor jj = 1:nSym
+      xht(jj,:) = conv(ht(jj,:),xt(jj,:));
+   end
+   xt2 = xht;
+   
    % Concatenating multiple symbols to form a long vector
    % parallel to serial
    xt = reshape(xt.',1,nSym*80);
-
+   xt2 = reshape(xt2.',1,nSym*(80+nTap-1));
    % Gaussian noise of unit variance, 0 mean
    % sehingga harus dibagi sqrt(2)
    nt = 1/sqrt(2)*(randn(1,nSym*80) + 1i*randn(1,nSym*80));
-   % Rayleigh channel, 1 tap.
-   % sehingga tinggal dikali nantinya.
-   % kalau multitap harus konvolusi
-   h = 1/sqrt(2)*(randn(1,nSym*80) + 1i*randn(1,nSym*80));      
-   % multipath channel
-   nTap = 1;
-   ht = 1/sqrt(2)*1/sqrt(nTap)*(randn(nSym,nTap) + 1i*randn(nSym,nTap));
-   
-   % computing and storing the frequency response of the channel, for use at recevier
-   hF = fftshift(fft(h,64,2));
    
    % Adding noise, the term sqrt(80/64) is to account for the wasted energy due to cyclic prefix
    yt = sqrt(80/64)*xt + 10^(-EsN0dB(ii)/20)*nt;
-   yt2 = sqrt(80/64)*h.*xt + 10^(-EsN0dB(ii)/20)*nt;
+   yt2 = sqrt(80/64)*h.*xht + 10^(-EsN0dB(ii)/20)*nt;
    
    % Receiver
    % serial to parallel

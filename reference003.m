@@ -6,6 +6,13 @@
 clear all
 clc
 
+% hitung SNR threshold. Dari Ferrand, 2013
+% SER = Q(sqrt(k*SNR)), BPSK k = 1
+N = 100; % number of symbol per packet
+SER_SNR_threshold = 1 - 10^(-0.3/N); % -0.3 berasal dari log10(1/2)
+akar_SNR_threshold = qfuncinv(SER_SNR_threshold);
+SNR_threshold = akar_SNR_threshold^2;
+
 % berikut standar 802.11
 nFFT = 64; % fft size
 nDSC = 52; % number of data subcarriers
@@ -13,6 +20,27 @@ nBitPerSym = 52; % number of bits per OFDM symbol (same as the number of subcarr
 
 % symbol yang dimaksud di sini adalah symbol OFDM
 nSym = 10^4; % number of symbols
+
+% hitung SNR dari jarak
+jarak = 1:100:801;
+transmission_power_10mW = -20; % 10 mW = 10 dBm = -20 dBW
+
+% total noise, dari Domazetovic, 2017
+noise_AWGN = -145.22; % dB
+noise_figure = 5; % dB
+antenna_gain = 3; % dB
+noise_AWGN_figure_temp_fading_gain_dll = noise_AWGN + noise_figure -...
+    antenna_gain; % dB
+
+SNR_normal = transmission_power_10mW - ...   % dB
+    path_loss_rooftop_macro_deployment(jarak) - ...
+    noise_AWGN_figure_temp_fading_gain_dll;
+SNR_normalLin = 10.^(SNR_normal./10);
+
+bandwidth_MCS0 = 2; % 1 MHz
+bit_rate_MCS0 = 0.65; % coded 1/2
+bit_rate_MCS0 = bit_rate_MCS0*2; % uncoded
+EbN0dB = SNR_normal-10 * log10(bit_rate_MCS0 / bandwidth_MCS0);
 
 EbN0dB = [0:10]; % bit to noise ratio
 % untuk simulasi menggunakan EsN0
@@ -62,15 +90,16 @@ for ii = 1:length(EbN0dB)
    % Gaussian noise of unit variance, 0 mean
    % sehingga harus dibagi sqrt(2)
    nt = 1/sqrt(2)*(randn(1,nSym*80) + 1i*randn(1,nSym*80));
+   nt2 = 1/sqrt(2)*[randn(1,nSym*(80+nTap-1)) + 1i*randn(1,nSym*(80+nTap-1))];
    
    % Adding noise, the term sqrt(80/64) is to account for the wasted energy due to cyclic prefix
    yt = sqrt(80/64)*xt + 10^(-EsN0dB(ii)/20)*nt;
-   yt2 = sqrt(80/64)*h.*xht + 10^(-EsN0dB(ii)/20)*nt;
+   yt2 = sqrt(80/64)*xt2 + 10^(-EsN0dB(ii)/20)*nt2;
    
    % Receiver
    % serial to parallel
    yt = reshape(yt.',80,nSym).'; % formatting the received vector into symbols
-   yt2 = reshape(yt2.',80,nSym).'; % formatting the received vector into symbols
+   yt2 = reshape(yt2.',80+nTap-1,nSym).'; % formatting the received vector into symbols
    yt = yt(:,[17:80]); % removing cyclic prefix
    yt2 = yt2(:,[17:80]); % removing cyclic prefix
 
@@ -124,3 +153,20 @@ legend('theory AWGN', 'simulation AWGN', 'theory Rayleigh',...
 xlabel('Eb/No, dB')
 ylabel('Bit Error Rate')
 title('BER for BPSK using OFDM')
+
+% Theory_PER = 1 - (1-simBer2).^4;
+% figure
+% semilogy(jarak,theoryBer,'bs-','LineWidth',1);
+% hold on
+% semilogy(jarak,simBer,'mx-','LineWidth',1);
+% semilogy(jarak,theoryBerRayleigh,'gs-','LineWidth',1);
+% semilogy(jarak,simBer2,'rx-','LineWidth',1);
+% semilogy(jarak,Theory_PER,'kx-','LineWidth',1);
+% axis([0 10 10^-2 1])
+% grid on
+% legend('theory AWGN', 'simulation AWGN', 'theory Rayleigh',...
+%     'simulation Rayleigh');
+% xlabel('Jarak (m)')
+% ylabel('Bit Error Rate')
+% title('BER for BPSK using OFDM')
+

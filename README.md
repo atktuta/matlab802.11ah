@@ -7,19 +7,19 @@ Paper berikutnya adalah dari artikel Ferrand dkk. [2]. Reproduce untuk figure 6.
 
 Mencoba membuat simulasi dan analisis berdasar [3] untuk menghasilkan BER vs EbN0 pada OFDM BPSK di channel AWGN dan Rayleigh.
 
-Penjelasan file <b>perbandingan_rumus_BER.m</b>:
+Penjelasan file <b>perbandingan_rumus_BER.m</b>:<br/>
 Untuk BPSK sudah ada rumus untuk menghitung BER berdasar EbN0 maupun SNR.
 Dan rumus ini berlaku untuk OFDM juga.
-
-BER AWGN = 0.5 * erfc(sqrt(EbN0))
-BER AWGN = qfunc(sqrt(2EbN0))
-BER Rayleigh = 0.5 * (1-sqrt(EbN0/(EbN0+1)))  
-
-BER AWGN = qfunc(sqrt(SNR))
-BER AWGN = 0.5*erfc(sqrt(SNR/2))
-
-References:
-
-[1] B. Domazetovic, E. Kocan, and A. Mihovska, “Performance evaluation of IEEE 802.11ah systems,” presented at the 2016 24th Telecommunications Forum (TELFOR), Belgrade, Serbia, 2016, pp. 1–4.
-[2] P. Ferrand, J.-M. Gorce, and C. Goursaud, “Approximations of the packet error rate under slow fading in direct and relayed links,” RESEARCH REPORT N° 8316, INRIA, p. 23, 2013.
-[3] http://www.dsplog.com/2008/06/10/ofdm-bpsk-bit-error/
+<br/>
+BER AWGN = 0.5 * erfc(sqrt(EbN0))<br/>
+BER AWGN = qfunc(sqrt(2EbN0))<br/>
+BER Rayleigh = 0.5 * (1-sqrt(EbN0/(EbN0+1))) <br/> 
+<br/>
+BER AWGN = qfunc(sqrt(SNR))<br/>
+BER AWGN = 0.5*erfc(sqrt(SNR/2))<br/>
+<br/>
+References:<br/>
+<br/>
+[1] B. Domazetovic, E. Kocan, and A. Mihovska, “Performance evaluation of IEEE 802.11ah systems,” presented at the 2016 24th Telecommunications Forum (TELFOR), Belgrade, Serbia, 2016, pp. 1–4.<br/>
+[2] P. Ferrand, J.-M. Gorce, and C. Goursaud, “Approximations of the packet error rate under slow fading in direct and relayed links,” RESEARCH REPORT N° 8316, INRIA, p. 23, 2013.<br/>
+[3] http://www.dsplog.com/2008/06/10/ofdm-bpsk-bit-error/<br/>

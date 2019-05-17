@@ -8,6 +8,7 @@ Paper berikutnya adalah dari artikel Ferrand dkk. [2]. Reproduce untuk figure 6.
 Mencoba membuat simulasi dan analisis berdasar [3] untuk menghasilkan BER vs EbN0 pada OFDM BPSK di channel AWGN dan Rayleigh.
 
 Penjelasan file <b>perbandingan_rumus_BER.m</b>:<br/>
+
 Untuk BPSK sudah ada rumus untuk menghitung BER berdasar EbN0 maupun SNR.
 Dan rumus ini berlaku untuk OFDM juga.
 <br/>

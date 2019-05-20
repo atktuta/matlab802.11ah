@@ -1,6 +1,8 @@
 ﻿# matlab802.11ah
 Tujuannya adalah membuat analisis dan simulasi PER vs Distance di 802.11ah.
 
+Modulasi yang dipakai hanya BPSK.
+
 Landasan pertama adalah dari artikel Bojan Domazetović dkk.[1]. Reproduce untuk figure 1, 2 dan 3.
 
 Paper berikutnya adalah dari artikel Ferrand dkk. [2]. Reproduce untuk figure 6.
@@ -15,9 +17,15 @@ Dan rumus ini berlaku untuk OFDM juga.
 BER AWGN = 0.5 * erfc(sqrt(EbN0))<br/>
 BER AWGN = qfunc(sqrt(2EbN0))<br/>
 BER Rayleigh = 0.5 * (1-sqrt(EbN0/(EbN0+1))) <br/> 
+BER Rayleigh = berfading(Eb_N0_dB, 'psk', 2, 1) -> fungsi matlab <br/>
 <br/>
 BER AWGN = qfunc(sqrt(SNR))<br/>
 BER AWGN = 0.5*erfc(sqrt(SNR/2))<br/>
+
+Curve sudah dibandingkan dengan program-program matlab yang lain, dan hasilnya sama.
+
+Apakah ada yang tahu formula untuk BER Rayleigh sebagai fungsi dari SNR? Mohon kirim ke email yang ada di profile page.
+
 <br/>
 References:<br/>
 <br/>

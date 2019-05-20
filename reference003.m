@@ -43,6 +43,7 @@ bit_rate_MCS0 = bit_rate_MCS0*2; % uncoded
 EbN0dB = SNR_normal-10 * log10(bit_rate_MCS0 / bandwidth_MCS0);
 
 EbN0dB = [0:10]; % bit to noise ratio
+EbN0dB = [-10:8]; % bit to noise ratio
 % untuk simulasi menggunakan EsN0
 % karena ada energi tambahan di OFDM yang tidak ada di BPSK biasa.
 % yaitu untuk bit SC yang tidak terpakai (nDSC/nFFT), dan cyclic prefix(64/80)
@@ -146,7 +147,7 @@ hold on
 semilogy(EbN0dB,simBer,'mx-','LineWidth',1);
 semilogy(EbN0dB,theoryBerRayleigh,'gs-','LineWidth',1);
 semilogy(EbN0dB,simBer2,'rx-','LineWidth',1);
-axis([0 10 10^-5 1])
+axis([EbN0dB(1) EbN0dB(length(EbN0dB)) 10^-3 1])
 grid on
 legend('theory AWGN', 'simulation AWGN', 'theory Rayleigh',...
     'simulation Rayleigh');

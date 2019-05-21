@@ -25,6 +25,17 @@ BER AWGN = 0.5*erfc(sqrt(SNR/2))<br/>
 Curve sudah dibandingkan dengan program-program matlab yang lain, dan hasilnya sama.
 
 Apakah ada yang tahu formula untuk BER Rayleigh sebagai fungsi dari SNR? Mohon kirim ke email yang ada di profile page.
+Kami menggunakan:
+
+BER Rayleigh = 0.5 * (1-sqrt(SNR/(SNR+1))) <br/>
+
+dimana hasilnya sama dengan hasil simulasi.
+
+PER diperoleh dari rumus:<br/>
+PER = 1 - (1 - BER)^N
+
+Dimana N adalah jumlah simbol per paket(?). Masih belum jelas definisi N.
+
 
 <br/>
 References:<br/>
@@ -32,4 +43,3 @@ References:<br/>
 [1] B. Domazetovic, E. Kocan, and A. Mihovska, “Performance evaluation of IEEE 802.11ah systems,” presented at the 2016 24th Telecommunications Forum (TELFOR), Belgrade, Serbia, 2016, pp. 1–4.<br/>
 [2] P. Ferrand, J.-M. Gorce, and C. Goursaud, “Approximations of the packet error rate under slow fading in direct and relayed links,” RESEARCH REPORT N° 8316, INRIA, p. 23, 2013.<br/>
 [3] http://www.dsplog.com/2008/06/10/ofdm-bpsk-bit-error/<br/>
-

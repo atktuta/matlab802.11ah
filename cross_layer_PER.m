@@ -12,8 +12,8 @@ clear;
 % dimana power received = power transmit - pathloss + gain
 % dan noise = noise_temp + noise_figure
 
-jumlah_bit_dikirim = 500;
-jarak = 100:50:1001;
+jumlah_bit_dikirim = 1000;
+jarak = 100:50:801;
 power_transmit = -20; % 10 mW = 10 dBm = -20 dBW
 gain = 3; % dB
 noise_temperature = -145.22; % dB
@@ -59,7 +59,7 @@ PER_ferrand_normal = 1-exp(-SNR_threshold_N100./SNRLin_normal);
 % ylabel("Packet Error Rate");
 % xlabel("Distance in meter");
 % axis([jarak(1) jarak(length(jarak)) 1e-3 1])
-% str = sprintf("Jarak dengan N = %d", N);
+% str = sprintf("Jarak dengan N = %d", NuntukThreshold);
 % title(str);
 
 
@@ -138,16 +138,17 @@ rasio_error_rayleigh_snr_sendiri_body = zeros(1,length(SNRdB));
 num_error_without_XL = zeros(1,length(SNRdB));
 num_error_with_XL = zeros(1,length(SNRdB));
 
-simulation_time = 10; % 10 seconds
+simulation_time = 20; % 10 seconds
 beacon_interval = 0.01; % 10 ms
 
 % if body shadow. untuk ECG probability-nya 7%
 % if body shadow. untuk Glucose Monitor probability-nya 5%
 % if body shadow. untuk Blood Pressure probability-nya 10%  
-Prob_shadow = 0.05;
+Prob_shadow = 0.07;
 
 % lewatkan channel
 for i=1:length(SNRdB)
+    pengali_bit_tidak_dikirim = 0;
     for detik=beacon_interval:beacon_interval:simulation_time
         % ada stream data
         random_binary = randi([0, 1], 1, jumlah_bit_dikirim);
@@ -177,6 +178,7 @@ for i=1:length(SNRdB)
             % BER with cross layer
             % didn't send, so BER and throughput zero
             % num_error_with_XL(i) = num_error_with_XL(i);
+            pengali_bit_tidak_dikirim = pengali_bit_tidak_dikirim + 1;
 
         else
             % karena ini situasi normal, tanpa body pathloss, maka 
@@ -199,7 +201,9 @@ for i=1:length(SNRdB)
 end
 
 BER_without_XL = num_error_without_XL/(jumlah_bit_dikirim*simulation_time/beacon_interval);
-BER_with_XL = num_error_with_XL/(jumlah_bit_dikirim*simulation_time/beacon_interval);
+jumlah_bit_tidak_dikirim_with_XL = pengali_bit_tidak_dikirim *jumlah_bit_dikirim;
+BER_with_XL = num_error_with_XL/((jumlah_bit_dikirim*simulation_time/beacon_interval)-...
+    jumlah_bit_tidak_dikirim_with_XL);
 
 %% coba tampilkan BER
 % BER teori with XL
@@ -223,12 +227,12 @@ legend("simulation w/o XL", ...
 ylabel("Bit Error Rate");
 xlabel("Distance AP-ST (m)");
 axis([jarak(1) jarak(length(jarak)) 1e-3 1])
-str = sprintf("Prob shadow = %f", Prob_shadow);
+str = sprintf("BER Prob shadow = %f", Prob_shadow);
 title(str);
 
 %% kalau PER
 
-N = 100;
+N = 23;
 
 PER_sim_without_XL = 1 - (1 - BER_without_XL).^N;
 PER_teori_without_XL = 1 - (1 - theory_tanpa_XL).^N;
@@ -252,8 +256,8 @@ ylabel("Packet Error Rate");
 xlabel("Distance APS-T (m)");
 axis([jarak(1) jarak(length(jarak)) 1e-2 1])
 %str = sprintf("PER dengan Prob. body pathloss happen = %f", Prob_shadow);
-str = sprintf("N = %d, Prob shadow = %f", N, Prob_shadow);
-title(str);
+str = sprintf("PER N = %d, Prob shadow = %f", N, Prob_shadow);
+%title(str);
 
 
 %% hitung throughput cross layer
@@ -261,6 +265,10 @@ throughput_teori_without_XL = hitung_throughput_80211ah(PER_teori_without_XL);
 throughput_sim_without_XL = hitung_throughput_80211ah(PER_sim_without_XL);
 throughput_teori_with_XL = hitung_throughput_80211ah(PER_teori_with_XL);
 throughput_sim_with_XL = hitung_throughput_80211ah(PER_sim_with_XL);
+
+% throughput_teori_with_XL = hitung_throughput_80211ah(PER_ferrand_normal);
+% throughput_teori_without_XL = hitung_throughput_80211ah(PER_ferrand_body) * (Prob_shadow) + ...
+%          hitung_throughput_80211ah(PER_ferrand_normal) * (1-Prob_shadow);
 
 figure
 semilogy(jarak,throughput_teori_without_XL,'b<-','LineWidth',1);
@@ -273,7 +281,7 @@ legend("throughput analysis w/o XL", "throughput simulation w/o XL", ...
    "throughput analysis with XL", "throughput simulation with XL" );
 ylabel("Average Throughput (Mbps)");
 xlabel("Distance AP-ST (m)");
-axis([jarak(1) jarak(length(jarak)) 1e3 1e6])
-str = sprintf("N = %d, Prob shadow = %f", N, Prob_shadow);
-title(str);
+axis([jarak(1) jarak(length(jarak)) 1e4 0.5*1e6])
+str = sprintf("Throughput N = %d, Prob shadow = %f", N, Prob_shadow);
+%title(str);
 

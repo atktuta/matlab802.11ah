@@ -279,7 +279,7 @@ semilogy(jarak,throughput_sim_with_XL,'rx-','LineWidth',1);
 grid on
 legend("throughput analysis w/o XL", "throughput simulation w/o XL", ...
    "throughput analysis with XL", "throughput simulation with XL" );
-ylabel("Average Throughput (Mbps)");
+ylabel("Average Throughput (bps)");
 xlabel("Distance AP-ST (m)");
 axis([jarak(1) jarak(length(jarak)) 1e4 0.5*1e6])
 str = sprintf("Throughput N = %d, Prob shadow = %f", N, Prob_shadow);

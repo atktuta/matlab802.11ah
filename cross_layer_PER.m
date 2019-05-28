@@ -285,3 +285,7 @@ axis([jarak(1) jarak(length(jarak)) 1e4 0.5*1e6])
 str = sprintf("Throughput N = %d, Prob shadow = %f", N, Prob_shadow);
 %title(str);
 
+%% coba bandingkan throughput 5 %
+% throughput normal * (1-5%) * PER_normal untuk XL
+% throughput PER 5%
+

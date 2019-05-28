@@ -288,4 +288,4 @@ str = sprintf("Throughput N = %d, Prob shadow = %f", N, Prob_shadow);
 %% coba bandingkan throughput 5 %
 % throughput normal * (1-5%) * PER_normal untuk XL
 % throughput PER 5%
-
+throughput_XL = (1-Prob_shadow)*throughput_teori_with_XL;

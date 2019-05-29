@@ -12,7 +12,7 @@ clear;
 % dimana power received = power transmit - pathloss + gain
 % dan noise = noise_temp + noise_figure
 
-jumlah_bit_dikirim = 1000;
+jumlah_bit_dikirim = 100;
 jarak = 100:50:801;
 power_transmit = -20; % 10 mW = 10 dBm = -20 dBW
 gain = 3; % dB
@@ -179,6 +179,9 @@ for i=1:length(SNRdB)
             % didn't send, so BER and throughput zero
             % num_error_with_XL(i) = num_error_with_XL(i);
             pengali_bit_tidak_dikirim = pengali_bit_tidak_dikirim + 1;
+            
+            % throughput 
+            
 
         else
             % karena ini situasi normal, tanpa body pathloss, maka 
@@ -286,6 +289,19 @@ str = sprintf("Throughput N = %d, Prob shadow = %f", N, Prob_shadow);
 %title(str);
 
 %% coba bandingkan throughput 5 %
-% throughput normal * (1-5%) * PER_normal untuk XL
-% throughput PER 5%
+% throughput normal * (1-Prob_shadow) * PER_normal untuk XL
+% throughput PER Prob_shadow
 throughput_XL = (1-Prob_shadow)*throughput_teori_with_XL;
+
+figure
+semilogy(jarak, throughput_XL,'r--')
+hold on
+semilogy(jarak,throughput_sim_with_XL,'c>-','LineWidth',1);
+grid on
+xlabel('Distance AP-ST (m)')
+ylabel('Average Throughput (bps)') 
+legend('Throughput analitical XL','Throughput simulation XL'); 
+axis([jarak(1) jarak(length(jarak)) 0.5*1e5 2*1e5])
+%axis([jarak(1) jarak(length(jarak)) 1*1e4 0.5*1e6])
+str = sprintf("Prob shadow = %f", N, Prob_shadow);
+title(str);

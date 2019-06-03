@@ -12,8 +12,8 @@ clear;
 % dimana power received = power transmit - pathloss + gain
 % dan noise = noise_temp + noise_figure
 
-jumlah_bit_dikirim = 1000;
-jarak = 1:50:1001;
+jumlah_bit_dikirim = 100;
+jarak = 100:50:801;
 power_transmit = -20; % 10 mW = 10 dBm = -20 dBW
 gain = 3; % dB
 noise_temperature = -145.22; % dB
@@ -23,8 +23,8 @@ noise_figure = 5; % dB
 
 %% hitung SNR threshold
 % SER = Q(sqrt(k*SNR)), BPSK k = 1
-N = 100; % number of symbol per packet
-SER_SNR_threshold = 1 - 10^(-0.3/N); % -0.3 berasal dari log10(1/2)
+NuntukThreshold = 100; % number of symbol per packet
+SER_SNR_threshold = 1 - 10^(-0.3/NuntukThreshold); % -0.3 berasal dari log10(1/2)
 akar_SNR_threshold = qfuncinv(SER_SNR_threshold);
 SNR_threshold_N100 = akar_SNR_threshold^2;
 
@@ -48,40 +48,40 @@ SNRLin_normal = 10.^(SNRdB/10);
 PER_ferrand_normal = 1-exp(-SNR_threshold_N100./SNRLin_normal);
 
 % curve perbandingan antara jarak dengan PER
-figure
-semilogy(jarak, PER_ferrand_normal,'b--')
-grid on
-hold on
-semilogy(jarak, PER_ferrand_body,'go-')
-xlabel('Distance (m)')
-ylabel('Average PER') 
-legend("Theory PER normal", "Theory PER bodyloss");
-ylabel("Packet Error Rate");
-xlabel("Distance in meter");
-axis([jarak(1) jarak(length(jarak)) 1e-3 1])
-str = sprintf("Jarak dengan N = %d", N);
-title(str);
+% figure
+% semilogy(jarak, PER_ferrand_normal,'b--')
+% grid on
+% hold on
+% semilogy(jarak, PER_ferrand_body,'go-')
+% xlabel('Distance (m)')
+% ylabel('Average PER') 
+% legend("Theory PER normal", "Theory PER bodyloss");
+% ylabel("Packet Error Rate");
+% xlabel("Distance in meter");
+% axis([jarak(1) jarak(length(jarak)) 1e-3 1])
+% str = sprintf("Jarak dengan N = %d", NuntukThreshold);
+% title(str);
 
 
 %% hitung throughput normal
-Throughput_normal = hitung_throughput(PER_ferrand_normal);
+Throughput_normal = hitung_throughput_80211ah(PER_ferrand_normal);
 
 %% hitung throughput body pathloss 
-Throughput_body = hitung_throughput(PER_ferrand_body);
+Throughput_body = hitung_throughput_80211ah(PER_ferrand_body);
 
 %% curve untuk throughput
-figure
-semilogy(jarak, Throughput_normal,'k--')
-hold on
-semilogy(jarak, Throughput_body,'r-o')
-
-grid on
-xlabel('Distance AP-ST (m)')
-ylabel('Average Throughput') 
-legend('802.11ah Pathloss','Body Pathloss'); 
-axis([jarak(1) jarak(length(jarak)) 1e1 1e6])
-str = sprintf("Throughput");
-title(str);
+% figure
+% semilogy(jarak, Throughput_normal,'k--')
+% hold on
+% semilogy(jarak, Throughput_body,'r-o')
+% 
+% grid on
+% xlabel('Distance AP-ST (m)')
+% ylabel('Average Throughput') 
+% legend('802.11ah Pathloss','Body Pathloss'); 
+% axis([jarak(1) jarak(length(jarak)) 1e1 1e6])
+% str = sprintf("Throughput");
+% title(str);
 
 %% simulasi
 % % ada stream data
@@ -138,7 +138,7 @@ rasio_error_rayleigh_snr_sendiri_body = zeros(1,length(SNRdB));
 num_error_without_XL = zeros(1,length(SNRdB));
 num_error_with_XL = zeros(1,length(SNRdB));
 
-simulation_time = 10; % 10 seconds
+simulation_time = 20; % 10 seconds
 beacon_interval = 0.01; % 10 ms
 
 % if body shadow. untuk ECG probability-nya 7%
@@ -148,6 +148,7 @@ Prob_shadow = 0.07;
 
 % lewatkan channel
 for i=1:length(SNRdB)
+    pengali_bit_tidak_dikirim = 0;
     for detik=beacon_interval:beacon_interval:simulation_time
         % ada stream data
         random_binary = randi([0, 1], 1, jumlah_bit_dikirim);
@@ -177,6 +178,10 @@ for i=1:length(SNRdB)
             % BER with cross layer
             % didn't send, so BER and throughput zero
             % num_error_with_XL(i) = num_error_with_XL(i);
+            pengali_bit_tidak_dikirim = pengali_bit_tidak_dikirim + 1;
+            
+            % throughput 
+            
 
         else
             % karena ini situasi normal, tanpa body pathloss, maka 
@@ -199,38 +204,74 @@ for i=1:length(SNRdB)
 end
 
 BER_without_XL = num_error_without_XL/(jumlah_bit_dikirim*simulation_time/beacon_interval);
-BER_with_XL = num_error_with_XL/(jumlah_bit_dikirim*simulation_time/beacon_interval);
+jumlah_bit_tidak_dikirim_with_XL = pengali_bit_tidak_dikirim *jumlah_bit_dikirim;
+BER_with_XL = num_error_with_XL/((jumlah_bit_dikirim*simulation_time/beacon_interval)-...
+    jumlah_bit_tidak_dikirim_with_XL);
 
-N = 25;
+%% coba tampilkan BER
+% BER teori with XL
+theory_snr_rayleigh = 0.5.*(1-sqrt(SNRLin_normal./(SNRLin_normal+1)));
+theory_snr_rayleigh_body = 0.5.*(1-sqrt(SNRLin_body./(SNRLin_body+1)));
+
+theory_tanpa_XL = (Prob_shadow*theory_snr_rayleigh_body) + ((1-Prob_shadow)*theory_snr_rayleigh);
+
+figure
+semilogy(jarak,BER_without_XL,'b<-','LineWidth',1);
+hold on
+semilogy(jarak,theory_tanpa_XL,'ro-','LineWidth',1);
+semilogy(jarak,BER_with_XL,'c>-','LineWidth',1);
+semilogy(jarak,theory_snr_rayleigh,'m<-','LineWidth',1);
+%semilogy(jarak,theory_snr_rayleigh_body,'bo-','LineWidth',1);
+
+grid on
+legend("simulation w/o XL", ...
+   "theory w/o XL", "simulation with XL",  ...
+   "theory with XL");
+ylabel("Bit Error Rate");
+xlabel("Distance AP-ST (m)");
+axis([jarak(1) jarak(length(jarak)) 1e-3 1])
+str = sprintf("BER Prob shadow = %f", Prob_shadow);
+title(str);
+
+%% kalau PER
+
+N = 23;
 
 PER_sim_without_XL = 1 - (1 - BER_without_XL).^N;
+PER_teori_without_XL = 1 - (1 - theory_tanpa_XL).^N;
 PER_sim_with_XL = 1 - (1 - BER_with_XL).^N;
+PER_teori_with_XL = 1 - (1 - theory_snr_rayleigh).^N;
 
 PER_teori_without_XL = PER_ferrand_body * (Prob_shadow) + ...
-        PER_ferrand_normal * (1-Prob_shadow);
+         PER_ferrand_normal * (1-Prob_shadow);
 PER_teori_with_XL = PER_ferrand_normal;
 
 figure
-semilogy(jarak,PER_teori_without_XL,'b<-','LineWidth',1);
+semilogy(jarak,PER_sim_without_XL,'b<-','LineWidth',1);
 hold on
-semilogy(jarak,PER_sim_without_XL,'c>-','LineWidth',1);
-semilogy(jarak,PER_teori_with_XL,'go-','LineWidth',1);
-semilogy(jarak,PER_sim_with_XL,'rx-','LineWidth',1);
+semilogy(jarak,PER_teori_without_XL,'c>-','LineWidth',1);
+semilogy(jarak,PER_sim_with_XL,'go-','LineWidth',1);
+semilogy(jarak,PER_teori_with_XL,'rx-','LineWidth',1);
 grid on
-legend("PER teori w/o XL", "PER simulation w/o XL", ...
-   "PER teori with XL", "PER simulation with XL" );
+legend("PER simulation w/o XL", "PER analysis w/o XL", ...
+   "PER simulation with XL", "PER analysis with XL" );
 ylabel("Packet Error Rate");
-xlabel("Distance in meter");
-axis([jarak(1) jarak(length(jarak)) 1e-3 1])
+xlabel("Distance APS-T (m)");
+axis([jarak(1) jarak(length(jarak)) 1e-2 1])
 %str = sprintf("PER dengan Prob. body pathloss happen = %f", Prob_shadow);
-%title("PER");
+str = sprintf("PER N = %d, Prob shadow = %f", N, Prob_shadow);
+%title(str);
 
 
 %% hitung throughput cross layer
-throughput_teori_without_XL = hitung_throughput(PER_teori_without_XL);
-throughput_sim_without_XL = hitung_throughput(PER_sim_without_XL);
-throughput_teori_with_XL = hitung_throughput(PER_teori_with_XL);
-throughput_sim_with_XL = hitung_throughput(PER_sim_with_XL);
+throughput_teori_without_XL = hitung_throughput_80211ah(PER_teori_without_XL);
+throughput_sim_without_XL = hitung_throughput_80211ah(PER_sim_without_XL);
+throughput_teori_with_XL = hitung_throughput_80211ah(PER_teori_with_XL);
+throughput_sim_with_XL = hitung_throughput_80211ah(PER_sim_with_XL);
+
+% throughput_teori_with_XL = hitung_throughput_80211ah(PER_ferrand_normal);
+% throughput_teori_without_XL = hitung_throughput_80211ah(PER_ferrand_body) * (Prob_shadow) + ...
+%          hitung_throughput_80211ah(PER_ferrand_normal) * (1-Prob_shadow);
 
 figure
 semilogy(jarak,throughput_teori_without_XL,'b<-','LineWidth',1);
@@ -239,73 +280,28 @@ semilogy(jarak,throughput_sim_without_XL,'c>-','LineWidth',1);
 semilogy(jarak,throughput_teori_with_XL,'go-','LineWidth',1);
 semilogy(jarak,throughput_sim_with_XL,'rx-','LineWidth',1);
 grid on
-legend("throughput teori w/o XL", "throughput simulation w/o XL", ...
-   "throughput teori with XL", "throughput simulation with XL" );
-ylabel("Average Throughput");
-xlabel("Distance in meter");
-axis([jarak(1) jarak(length(jarak)) 1e3 1e6])
-str = sprintf("Throughput");
+legend("throughput analysis w/o XL", "throughput simulation w/o XL", ...
+   "throughput analysis with XL", "throughput simulation with XL" );
+ylabel("Average Throughput (bps)");
+xlabel("Distance AP-ST (m)");
+axis([jarak(1) jarak(length(jarak)) 1e4 0.5*1e6])
+str = sprintf("Throughput N = %d, Prob shadow = %f", N, Prob_shadow);
 %title(str);
 
-%% fungsi hitung throughput dari PER
-function hasil = hitung_throughput(PER)
-    m = 6; % maximum number of backoff stages and corresponds to 6 (i.e. CW_max = 2^6 CW_min )
-    mpdu_size = 475; % 475 Bytes
+%% coba bandingkan throughput 5 %
+% throughput normal * (1-Prob_shadow) * PER_normal untuk XL
+% throughput PER Prob_shadow
+throughput_XL = (1-Prob_shadow)*throughput_teori_with_XL;
 
-    sigma_11ah = 1561/physconst('LightSpeed'); % jarak maks/kecepatan cahaya
-
-    DIFS_11ah = 264e-6; % 264 us untuk 11ah
-    SIFS_11ah = 160e-6; % 160 us untuk 11ah
-    CW_min = 15;
-    CW_max = 1023;
-    T_SLOT_11ah = 52e-6; % 52 us untuk 11a
-
-    T_preamble_header_11ah = 560e-6; % 560 us untuk 11ah
-    T_Sym_11ah = 40e-6; % 40 us untuk 11ah
-
-    L_header_plus_L_data_ack = 14; % 14 bytes untuk ACK
-    N_Sym_ack_11ah = (14 + L_header_plus_L_data_ack*8)/6;
-    T_ACK_11ah = T_preamble_header_11ah + (T_Sym_11ah * N_Sym_ack_11ah);
-
-    L_header_11ah = 26; % short header, kalau long header = 36
-    N_Sym_11ah = (14 + (L_header_11ah + mpdu_size) * 8) / 6;
-    T_DATA_11ah = T_preamble_header_11ah + (T_Sym_11ah * N_Sym_11ah);
-
-    T_message_wo_T_BACKOFF = DIFS_11ah + T_DATA_11ah + SIFS_11ah + ...
-        T_ACK_11ah + 2 * sigma_11ah;
-
-    batas_atas = 60; % sebetulnya batas atas adalah tak hingga
-                     % namun di atas 60 sudah convergen utk PER 0.9
-    T_BACKOFF = 0;
-    for j=1:batas_atas
-        T_BACKOFF = T_BACKOFF + PDR_array(PER,j)*T_backoff(CW_min, ...
-            CW_max, T_SLOT_11ah, j, m);
-    end
-    T_message = T_message_wo_T_BACKOFF + T_BACKOFF;      
-    hasil = (mpdu_size * 8)./T_message .* (1-PER);   
-end
-
-%% fungsi pathloss untuk body shadow
-function hasil = path_loss_body_shadow(distance)
-    % rumus path loss bedside
-    d1 = 0.5; % 50 cm. jarak dari sensor ke body edge
-    S = 8.68;
-    C = 64.7;
-    n = 2; % free space
-    hasil = 10*(n-2)*log(d1)+20*log10(distance)+S+C+20*log10(900/2400);
-end
-
-
-%% fungsi PDR
-function hasil = PDR_array(PER,i)
-   hasil = (1-PER) .* PER.^(i-1);
-end
-
-%% fungsi  T_backoff
-function hasil = T_backoff(CW_min, CW_max, T_Slot, i, m)
-   if i < m
-       hasil = (2^(i-1)*(CW_min + 1) - 1) / 2 * T_Slot;
-   else
-       hasil = CW_max / 2 * T_Slot;
-   end
-end
+figure
+semilogy(jarak, throughput_XL,'r--')
+hold on
+semilogy(jarak,throughput_sim_with_XL,'c>-','LineWidth',1);
+grid on
+xlabel('Distance AP-ST (m)')
+ylabel('Average Throughput (bps)') 
+legend('Throughput analitical XL','Throughput simulation XL'); 
+axis([jarak(1) jarak(length(jarak)) 0.5*1e5 2*1e5])
+%axis([jarak(1) jarak(length(jarak)) 1*1e4 0.5*1e6])
+str = sprintf("Prob shadow = %f", N, Prob_shadow);
+title(str);

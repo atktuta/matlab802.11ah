@@ -27,7 +27,6 @@ NuntukThreshold = 100; % number of symbol per packet
 SER_SNR_threshold = 1 - 10^(-0.3/NuntukThreshold); % -0.3 berasal dari log10(1/2)
 akar_SNR_threshold = qfuncinv(SER_SNR_threshold);
 SNR_threshold_N100 = akar_SNR_threshold^2;
-
 %% hitung PER body shadow 
 % rumus PER ini diperoleh dari approximation Ferrand, 2013
 % untuk BPSK rayleigh

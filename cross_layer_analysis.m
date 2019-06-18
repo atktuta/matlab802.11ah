@@ -149,7 +149,7 @@ xlabel('Distance AP-ST (m)')
 ylabel('Average PER') 
 legend('Tx=10mW, PER XL','Tx=10mW, PER 5%',...
 'Tx=10mW, PER 7%', 'Tx=10mW, PER 10%'); 
-axis([distance(1) distance(length(distance)) 1*1e-2 1])
+axis([distance(1) distance(length(distance)) 0.5*1e-2 1])
 
 % str = sprintf("SNR dengan N = %d", N);
 % title(str);
@@ -177,20 +177,20 @@ throughput_XL_05 = (1-0.05)*Throughput_normal;
 throughput_XL_07 = (1-0.07)*Throughput_normal;
 throughput_XL_10 = (1-0.10)*Throughput_normal;
 figure
-semilogy(distance, throughput_XL_05,'r--')
+semilogy(distance, throughput_XL_05,'rx--','MarkerIndices',1:40:length(distance))
 hold on
-semilogy(distance, throughput_XL_07,'b--','MarkerIndices',1:50:length(distance))
-semilogy(distance, throughput_XL_10,'g--','MarkerIndices',1:60:length(distance))
-semilogy(distance, Throughput_5_persen_body_shadow,'r-o','MarkerIndices',1:40:length(distance))
-semilogy(distance, Throughput_7_persen_body_shadow,'b-o','MarkerIndices',1:40:length(distance))
-semilogy(distance, Throughput_10_persen_body_shadow,'g-o','MarkerIndices',1:40:length(distance))
+semilogy(distance, throughput_XL_07,'b>--','MarkerIndices',1:60:length(distance))
+semilogy(distance, throughput_XL_10,'g*--','MarkerIndices',1:80:length(distance))
+semilogy(distance, Throughput_5_persen_body_shadow,'r<-','MarkerIndices',1:40:length(distance))
+semilogy(distance, Throughput_7_persen_body_shadow,'bo-','MarkerIndices',1:70:length(distance))
+semilogy(distance, Throughput_10_persen_body_shadow,'gs-','MarkerIndices',1:100:length(distance))
 
 grid on
 xlabel('Distance AP-ST (m)')
 ylabel('Average Throughput (bps)') 
-legend('Tx=10mW, Throughput XL 5%','XL 7%',...
-    'XL 10%','without XL 5%',...
-    'without XL 7%','without XL 10%'); 
+legend('Tx=10mW, Throughput with XL 5%','Throughput with XL 7%',...
+    'Throughput with XL 10%','Throughput w/o XL 5%',...
+    'Throughput w/o XL 7%','Throughput w/o XL 10%'); 
 axis([distance(1) distance(length(distance)) 0.5*1e5 2*1e5])
 %axis([distance(1) distance(length(distance)) 1*1e4 0.5*1e6])
 %title("ini semuanya mengalami body shadow");

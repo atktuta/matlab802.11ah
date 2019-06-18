@@ -153,17 +153,17 @@ PER_teori_dengan_XL = PER_ferrand_normal;
 
 %% curve PER
 figure
-semilogy(jarak,PER_tanpa_XL_rata_rata,'b<-','LineWidth',1);
+semilogy(jarak,PER_tanpa_XL_rata_rata,'b<-','LineWidth',1, 'MarkerIndices',1:2:length(jarak));
 hold on
-semilogy(jarak,PER_dengan_XL_rata_rata,'c>-','LineWidth',1);
-semilogy(jarak,PER_teori_tanpa_XL,'go-','LineWidth',1);
-semilogy(jarak,PER_teori_dengan_XL,'rx-','LineWidth',1);
+semilogy(jarak,PER_dengan_XL_rata_rata,'k>-','LineWidth',1, 'MarkerIndices',1:2:length(jarak));
+semilogy(jarak,PER_teori_tanpa_XL,'go-','LineWidth',1, 'MarkerIndices',2:2:length(jarak));
+semilogy(jarak,PER_teori_dengan_XL,'rx-','LineWidth',1, 'MarkerIndices',2:2:length(jarak));
 grid on
 legend("PER simulation w/o XL", "PER simulation with XL", ...
-    "PER teori w/o XL", "PER teori with XL");
+    "PER theoretical w/o XL", "PER theoretical with XL");
 ylabel("Packet Error Rate");
 xlabel("Distance APS-T (m)");
-axis([jarak(1) jarak(length(jarak)) 1e-2 1])
+axis([jarak(1) jarak(length(jarak)) 0.5e-2 1])
 str = sprintf("PER N = %d, Prob shadow = %f", N, Prob_shadow);
 %title(str);
 
@@ -180,7 +180,7 @@ semilogy(jarak,throughput_teori_tanpa_XL,'bo--','LineWidth',1);
 semilogy(jarak,throughput_teori_dengan_XL,'rx--','LineWidth',1);
 grid on
 legend("throughput simulation w/o XL", "throughput simulation with XL",...
-    "throughput teori w/o XL", "throughput teori with XL");
+    "throughput theoretical w/o XL", "throughput theoretical with XL");
 ylabel("Average Throughput (bps)");
 xlabel("Distance AP-ST (m)");
 axis([jarak(1) jarak(length(jarak)) 1e4 0.5*1e6])
